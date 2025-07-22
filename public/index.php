@@ -2,6 +2,7 @@
 
 require_once '../app/Controllers/AuthController.php';
 require_once '../app/Controllers/PostController.php';
+require_once '../app/Controllers/ProfileController.php'; // Thêm dòng này
 
 $base_path = dirname($_SERVER['SCRIPT_NAME']);
 if ($base_path === '/' || $base_path === '\\') {
@@ -21,6 +22,7 @@ session_start(); // Bắt đầu session để hàm check có thể truy cập
 $authController->checkRememberMe();
 
 $postController = new PostController();
+$profileController = new ProfileController(); // Thêm dòng này
 
 $request_uri = explode('?', $_SERVER['REQUEST_URI'])[0];
 $request_path = str_replace(dirname($_SERVER['SCRIPT_NAME']), '', $request_uri);
@@ -78,6 +80,19 @@ if (preg_match('/^\/posts\/(\d+)$/', $request_path, $matches)) {
 
         case '/my-posts/update':
             $postController->update();
+            break;
+
+        // Thêm các route cho profile
+        case '/profile':
+            $profileController->index();
+            break;
+
+        case '/profile/edit':
+            $profileController->edit();
+            break;
+
+        case '/profile/change-password':
+            $profileController->changePassword();
             break;
 
         default:

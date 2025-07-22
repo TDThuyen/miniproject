@@ -80,4 +80,65 @@ class User
         $stmt = $this->pdo->prepare("DELETE FROM remember_tokens WHERE token = ?");
         return $stmt->execute([$hashedToken]);
     }
+
+    /**
+     * Tìm user bằng ID
+     */
+    public function findById($id)
+    {
+        $stmt = $this->pdo->prepare("SELECT id, username, email, display_name, created_at FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Cập nhật thông tin profile
+     */
+    public function updateProfile($id, $data)
+    {
+        $stmt = $this->pdo->prepare("UPDATE users SET username = ?, display_name = ?, email = ? WHERE id = ?");
+        return $stmt->execute([
+            $data['username'],
+            $data['display_name'],
+            $data['email'],
+            $id
+        ]);
+    }
+
+    /**
+     * Kiểm tra username đã tồn tại chưa (trừ user hiện tại)
+     */
+    public function isUsernameExistsExcept($userId, $username)
+    {
+        $stmt = $this->pdo->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
+        $stmt->execute([$username, $userId]);
+        return $stmt->fetch() !== false;
+    }
+
+    /**
+     * Kiểm tra mật khẩu hiện tại
+     */
+    public function verifyCurrentPassword($userId, $password)
+    {
+        $stmt = $this->pdo->prepare("SELECT password_hash FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            return false;
+        }
+
+        // Sửa từ $user['password'] thành $user['password_hash']
+        return password_verify($password, $user['password_hash']);
+    }
+
+    /**
+     * Cập nhật mật khẩu
+     */
+    public function updatePassword($userId, $newPassword)
+    {
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $stmt = $this->pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+        return $stmt->execute([$hashedPassword, $userId]);
+    }
 }
